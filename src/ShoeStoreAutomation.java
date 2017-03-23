@@ -8,6 +8,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ShoeStoreAutomation {
     //Declared as public static to use same webdriver instance publicly
@@ -15,13 +16,28 @@ public class ShoeStoreAutomation {
 
     @Test
     public static void main(String[] args){
-
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         driver.get("http://shoestore-manheim.rhcloud.com/");
 
-        monthly_shoe_lists_test();
-        submit_email_test();
+        try {
+//            monthly_shoe_lists_test();
+        } catch (AssertionError e){
+            System.out.println("Assert Error: "+e.getLocalizedMessage());
+        } finally {
+            //return to main page
+            driver.navigate().to("http://shoestore-manheim.rhcloud.com/");
+        }
 
-        //driver.quit();
+        try{
+            submit_email_test();
+        } catch (AssertionError e){
+            System.out.println("Assert Error: "+e.getLocalizedMessage());
+        } finally {
+            //return to main page
+            driver.navigate().to("http://shoestore-manheim.rhcloud.com/");
+        }
+
+        driver.quit();
     }
 
     @Test
@@ -29,7 +45,7 @@ public class ShoeStoreAutomation {
 
         //Story 1: Monthly Display of new releases
         //Should display a 'small blurb' of each shoe
-        //Should display an image each shoe being release
+        //Should display an image each shoe being released
         //Each should should have a suggested price pricing
         List<WebElement> monthLinks = driver.findElements(By.xpath("//a[contains(@href,'/months/')]"));
         List<String> hrefs = new ArrayList<String>();
@@ -57,17 +73,13 @@ public class ShoeStoreAutomation {
                 shoeBlurb = shoeResult.findElement(By.className("shoe_description")).getText();
                 shoeImage = shoeResult.findElement(By.xpath("//td[@class='shoe_image']/img"));
                 shoePrice = shoeResult.findElement(By.className("shoe_price")).getText();
-                try {
-                    Assert.assertNotEquals("Shoe has a 'blurb'.", "", shoeBlurb);
-                    Assert.assertNotEquals("Shoe has an image", "", shoeImage.getAttribute("src"));
-                    Assert.assertNotEquals("Shoe has a price.", "", shoePrice);
-                } catch (Exception e){
-                    System.out.println("Assert Error: "+e.getLocalizedMessage());
-                }
+
+                Assert.assertNotEquals("Shoe has a 'blurb'.", "", shoeBlurb);
+                //Do we just have to confirm the section exists or do there need to be images? Assuming the latter
+                Assert.assertNotEquals("Shoe has an image", "", shoeImage.getAttribute("src"));
+                Assert.assertNotEquals("Shoe has a price.", "", shoePrice);
             }
         }
-        //Return to main page
-        driver.navigate().to("http://shoestore-manheim.rhcloud.com/");
     }
 
     @Test
@@ -85,13 +97,9 @@ public class ShoeStoreAutomation {
         WebElement submitEmail = driver.findElement(By.cssSelector("div.left:nth-child(1) > input:nth-child(3)"));
         submitEmail.click();
 
-        WebElement notification = driver.findElement(By.xpath("//div[id='flash']/div"));
+        WebElement notification = driver.findElement(By.cssSelector(".flash"));
 
         Assert.assertEquals("Notification message is 'Thanks! We will notify you of our new shoes at this email: users email address'",
-                "Thanks! We will notify you of our new shoes at this email: users email address: test@test.com",notification.getText());
-
-
-        //Return to main page
-        driver.navigate().to("http://shoestore-manheim.rhcloud.com/");
+                "Thanks! We will notify you of our new shoes at this email: test@test.com",notification.getText());
     }
 }
