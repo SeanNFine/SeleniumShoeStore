@@ -20,7 +20,7 @@ public class ShoeStoreAutomation {
         driver.get("http://shoestore-manheim.rhcloud.com/");
 
         try {
-//            monthly_shoe_lists_test();
+            monthly_shoe_lists_test();
         } catch (AssertionError e){
             System.out.println("Assert Error: "+e.getLocalizedMessage());
         } finally {
